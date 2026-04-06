@@ -4,10 +4,11 @@ from langchain_openai import ChatOpenAI
 def generate_answer(query, context_docs):
     llm = ChatOpenAI(model="gpt-3.5-turbo")
 
-    # Combine context
+    # Limit context for better relevance
+    context_docs = context_docs[:5]
+
     context = "\n\n".join([doc.page_content for doc in context_docs])
 
-    # Structured + strict prompt
     prompt = f"""
 You are a professional AI assistant.
 
@@ -17,10 +18,9 @@ Rules:
 - Do NOT use outside knowledge
 - If answer is not in context, say: "I don't know based on the provided documents."
 
-Formatting Rules:
-- Provide a clear and structured answer
-- Use bullet points where possible
-- Keep answer concise and professional
+Formatting:
+- Use bullet points if needed
+- Keep answer clean and concise
 
 Context:
 {context}
@@ -31,12 +31,24 @@ Question:
 
     response = llm.invoke(prompt)
 
-    # Prepare citations
-    sources = []
-    for doc in context_docs:
-        sources.append({
-            "source": doc.metadata.get("source", "Unknown"),
-            "content": doc.page_content[:200]
-        })
+    # -------------------------------
+    # CLEAN SOURCE HANDLING
+    # -------------------------------
+    seen_sources = set()
+    clean_sources = []
 
-    return response.content, sources
+    for doc in context_docs:
+        source = doc.metadata.get("source", "Unknown")
+
+        if source not in seen_sources:
+            seen_sources.add(source)
+
+            clean_sources.append({
+                "source": source,
+                "content": doc.page_content[:150]
+            })
+
+        if len(clean_sources) >= 3:
+            break
+
+    return response.content, clean_sources
