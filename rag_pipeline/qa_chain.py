@@ -4,7 +4,7 @@ from langchain_openai import ChatOpenAI
 def generate_answer(query, context_docs):
     llm = ChatOpenAI(model="gpt-3.5-turbo")
 
-    # Limit context for better relevance
+    # Step 1: Limit context
     context_docs = context_docs[:5]
 
     context = "\n\n".join([doc.page_content for doc in context_docs])
@@ -18,10 +18,6 @@ Rules:
 - Do NOT use outside knowledge
 - If answer is not in context, say: "I don't know based on the provided documents."
 
-Formatting:
-- Use bullet points if needed
-- Keep answer clean and concise
-
 Context:
 {context}
 
@@ -32,23 +28,35 @@ Question:
     response = llm.invoke(prompt)
 
     # -------------------------------
-    # CLEAN SOURCE HANDLING
+    # SMART SOURCE FILTERING
     # -------------------------------
-    seen_sources = set()
-    clean_sources = []
+    query_lower = query.lower()
+
+    filtered_sources = []
+    seen = set()
 
     for doc in context_docs:
-        source = doc.metadata.get("source", "Unknown")
+        source = doc.metadata.get("source", "").lower()
 
-        if source not in seen_sources:
-            seen_sources.add(source)
+        # Match query intent with file type
+        if ("ai" in query_lower or "artificial intelligence" in query_lower) and "ai" not in source:
+            continue
 
-            clean_sources.append({
+        if ("salary" in query_lower or "employee" in query_lower) and "employee" not in source:
+            continue
+
+        if ("sales" in query_lower or "product" in query_lower) and "sales" not in source:
+            continue
+
+        if source not in seen:
+            seen.add(source)
+
+            filtered_sources.append({
                 "source": source,
                 "content": doc.page_content[:150]
             })
 
-        if len(clean_sources) >= 3:
+        if len(filtered_sources) >= 3:
             break
 
-    return response.content, clean_sources
+    return response.content, filtered_sources
