@@ -26,6 +26,11 @@ Ask questions from your documents and get **accurate answers with sources**.
 """)
 
 # -------------------------------
+# ENSURE DATA FOLDER EXISTS (IMPORTANT FIX)
+# -------------------------------
+os.makedirs("data", exist_ok=True)
+
+# -------------------------------
 # FILE UPLOAD
 # -------------------------------
 uploaded_files = st.file_uploader(
@@ -77,7 +82,6 @@ with col2:
 if retriever and query and search_clicked:
 
     results = retriever.invoke(query)
-
     query_lower = query.lower()
 
     # -------------------------------
@@ -98,7 +102,7 @@ if retriever and query and search_clicked:
     formatted_answer = answer.replace(" - ", "\n- ").replace("- ", "\n- ")
 
     # -------------------------------
-    # ANSWER
+    # ANSWER DISPLAY
     # -------------------------------
     st.subheader("📌 Answer")
 
@@ -116,7 +120,7 @@ if retriever and query and search_clicked:
     """, unsafe_allow_html=True)
 
     # -------------------------------
-    # SOURCES (only QA mode)
+    # SOURCES DISPLAY (QA mode only)
     # -------------------------------
     if sources and "I don't know" not in answer:
         st.subheader("📚 Sources")
