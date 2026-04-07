@@ -59,7 +59,7 @@ This system acts as an **AI Data Analyst**, enabling users to extract insights f
 ## ⚙️ Installation (Local Setup)
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/enterprise-knowledge-ai.git
+git clone https://github.com/Navjotkaur-22/enterprise-knowledge-ai
 cd enterprise-knowledge-ai
 
 pip install -r requirements.txt
